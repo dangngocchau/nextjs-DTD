@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -11,11 +11,11 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import envConfig from '../../../../config';
-import { LoginBody, LoginBodyType } from './validation';
-import { useToast } from '@/components/ui/use-toast';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import envConfig from "../../../../config";
+import { LoginBody, LoginBodyType } from "./validation";
+import { useToast } from "@/components/ui/use-toast";
 
 const LoginForm = () => {
   const { toast } = useToast();
@@ -23,8 +23,8 @@ const LoginForm = () => {
   const form = useForm<LoginBodyType>({
     resolver: zodResolver(LoginBody),
     defaultValues: {
-      email: '',
-      password: '',
+      email: "",
+      password: "",
     },
   });
 
@@ -36,9 +36,9 @@ const LoginForm = () => {
         {
           body: JSON.stringify(values),
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
-          method: 'POST',
+          method: "POST",
         }
       ).then(async (res) => {
         const payload = await res.json();
@@ -54,6 +54,21 @@ const LoginForm = () => {
       toast({
         description: result.payload.message,
       });
+      
+      const resultFromNextServer = await fetch("/api/auth", {
+        method: "POST",
+        body: JSON.stringify(result),
+      }).then(async (res) => {
+        const payload = await res.json();
+        const data = {
+          status: res.status,
+          payload,
+        };
+        if (!res.ok) {
+          throw data;
+        }
+        return data;
+      });
     } catch (error: any) {
       const errors = error.payload.errors as {
         field: string;
@@ -63,16 +78,16 @@ const LoginForm = () => {
 
       if (status === 422) {
         errors.forEach((error) => {
-          form.setError(error.field as 'email' | 'password', {
-            type: 'server',
+          form.setError(error.field as "email" | "password", {
+            type: "server",
             message: error.message,
           });
         });
       } else {
         toast({
-          title: 'Unexpected error occur !',
+          title: "Unexpected error occur !",
           description: error.payload.message,
-          variant: 'destructive',
+          variant: "destructive",
         });
       }
     }
@@ -82,17 +97,17 @@ const LoginForm = () => {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className='space-y-8 max-w-[500px] w-full'
+        className="space-y-8 max-w-[500px] w-full"
         noValidate
       >
         <FormField
           control={form.control}
-          name='email'
+          name="email"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input placeholder='shadcn' type='email' {...field} />
+                <Input placeholder="shadcn" type="email" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -100,18 +115,18 @@ const LoginForm = () => {
         />
         <FormField
           control={form.control}
-          name='password'
+          name="password"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Password</FormLabel>
               <FormControl>
-                <Input placeholder='shadcn' type='password' {...field} />
+                <Input placeholder="shadcn" type="password" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button type='submit' className='w-full'>
+        <Button type="submit" className="w-full">
           Login
         </Button>
       </form>
