@@ -4,20 +4,17 @@ export async function POST(request: Request) {
 
   if (!sessionToken) {
     return Response.json(
-      { message: 'Can not recieve session token' },
+      { message: "Can not recieve session token" },
       {
         status: 400,
       }
     );
   }
 
-  return Response.json(
-    { res },
-    {
-      status: 200,
-      headers: {
-        "Set-Cookie": `sessionToken=${sessionToken}; Path=/; HttpOnly`,
-      },
-    }
-  );
+  return Response.json(res.payload, {
+    status: 200,
+    headers: {
+      "Set-Cookie": `sessionToken=${sessionToken}; Path=/; HttpOnly`,
+    },
+  });
 }

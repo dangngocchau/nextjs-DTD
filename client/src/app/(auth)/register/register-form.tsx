@@ -39,7 +39,6 @@ const RegisterForm = () => {
         method: 'POST',
       }
     ).then((res) => res.json());
-    console.log(result);
   }
 
   return (

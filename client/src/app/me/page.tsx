@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import envConfig from "../../../config";
+import ProfileMe from "./profile";
 
 export default async function Profile() {
   const cookieStore = cookies();
@@ -28,5 +29,6 @@ export default async function Profile() {
   return <div>
     <h1>Profile</h1>
     <div>Hello {result.payload.data?.name}</div>
+    <ProfileMe />
   </div>;
 }
