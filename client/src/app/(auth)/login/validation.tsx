@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { RegisterRes } from '../register/validation';
 
 export const LoginBody = z
   .object({
@@ -7,4 +8,10 @@ export const LoginBody = z
   })
   .strict();
 
+
+
 export type LoginBodyType = z.TypeOf<typeof LoginBody>;
+
+export const LoginResponse = RegisterRes;
+
+export type LoginResponseType = z.infer<typeof LoginResponse>;

@@ -17,6 +17,7 @@ import envConfig from "../../../../config";
 import { LoginBody, LoginBodyType } from "./validation";
 import { useToast } from "@/components/ui/use-toast";
 import { useAppContext } from "@/app/AppProvider";
+import authApiRequests from "@/apiRequests/auth";
 
 const LoginForm = () => {
   const { toast } = useToast();
@@ -33,46 +34,13 @@ const LoginForm = () => {
   // 2. Define a submit handler.
   async function onSubmit(values: LoginBodyType) {
     try {
-      const result = await fetch(
-        `${envConfig.NEXT_PUBLIC_API_ENDPOINT}/auth/login`,
-        {
-          body: JSON.stringify(values),
-          headers: {
-            "Content-Type": "application/json",
-          },
-          method: "POST",
-        }
-      ).then(async (res) => {
-        const payload = await res.json();
-        const data = {
-          status: res.status,
-          payload,
-        };
-        if (!res.ok) {
-          throw data;
-        }
-        return data;
-      });
+      const result = await authApiRequests.login(values);
       toast({
         description: result.payload.message,
       });
 
-      const resultFromNextServer = await fetch("/api/auth", {
-        method: "POST",
-        body: JSON.stringify(result),
-      }).then(async (res) => {
-        const payload = await res.json();
-        const data = {
-          status: res.status,
-          payload,
-        };
-        if (!res.ok) {
-          throw data;
-        }
-        return data;
-      });
-
-      setSessionToken(resultFromNextServer.payload.data.token);
+      await authApiRequests.auth({sessionToken: result.payload.data.token});
+      setSessionToken(result.payload.data.token);
     } catch (error: any) {
       const errors = error.payload.errors as {
         field: string;
