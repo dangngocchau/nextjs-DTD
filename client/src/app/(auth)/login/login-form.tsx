@@ -18,9 +18,11 @@ import { LoginBody, LoginBodyType } from "./validation";
 import { useToast } from "@/components/ui/use-toast";
 import { useAppContext } from "@/app/AppProvider";
 import authApiRequests from "@/apiRequests/auth";
+import { useRouter } from "next/navigation";
 
 const LoginForm = () => {
   const { toast } = useToast();
+  const router = useRouter();
   const { setSessionToken } = useAppContext();
 
   const form = useForm<LoginBodyType>({
@@ -41,6 +43,8 @@ const LoginForm = () => {
 
       await authApiRequests.auth({sessionToken: result.payload.data.token});
       setSessionToken(result.payload.data.token);
+
+      router.push("/me"); // Redirect to the profile page
     } catch (error: any) {
       const errors = error.payload.errors as {
         field: string;

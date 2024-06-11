@@ -12,4 +12,5 @@ const authApiRequests = {
     }),
 }
 
+
 export default authApiRequests;

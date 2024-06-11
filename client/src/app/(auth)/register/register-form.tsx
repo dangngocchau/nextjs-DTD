@@ -15,8 +15,15 @@ import {
 import { Input } from '@/components/ui/input';
 import { RegisterBody, RegisterBodyType } from './validation';
 import envConfig from '../../../../config';
+import authApiRequests from '@/apiRequests/auth';
+import { useRouter } from 'next/navigation';
+import { toast } from '@/components/ui/use-toast';
+import { useAppContext } from '@/app/AppProvider';
 
 const RegisterForm = () => {
+  const router = useRouter();
+  const { setSessionToken } = useAppContext();
+
   const form = useForm<RegisterBodyType>({
     resolver: zodResolver(RegisterBody),
     defaultValues: {
@@ -29,16 +36,38 @@ const RegisterForm = () => {
 
   // 2. Define a submit handler.
   async function onSubmit(values: RegisterBodyType) {
-    const result = await fetch(
-      `${envConfig.NEXT_PUBLIC_API_ENDPOINT}/auth/register`,
-      {
-        body: JSON.stringify(values),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        method: 'POST',
+    try {
+      const result = await authApiRequests.register(values);
+      toast({
+        description: result.payload.message,
+      });
+
+      await authApiRequests.auth({sessionToken: result.payload.data.token});
+      setSessionToken(result.payload.data.token);
+
+      router.push("/me"); // Redirect to the profile page
+    } catch (error: any) {
+      const errors = error.payload.errors as {
+        field: string;
+        message: string;
+      }[];
+      const status = error.status as number;
+
+      if (status === 422) {
+        errors.forEach((error) => {
+          form.setError(error.field as "email" | "password", {
+            type: "server",
+            message: error.message,
+          });
+        });
+      } else {
+        toast({
+          title: "Unexpected error occur !",
+          description: error.payload.message,
+          variant: "destructive",
+        });
       }
-    ).then((res) => res.json());
+    }
   }
 
   return (
