@@ -1,8 +1,11 @@
+import { LoginResponseType } from "@/app/(auth)/login/validation";
 import envConfig from "../../config";
 
 type CustomOptions = RequestInit & {
   baseUrl?: string | undefined;
 };
+
+const SessionTokenPathName = ['/auth/login', '/auth/register'];
 
 class HttpError extends Error {
   status: number;
@@ -37,12 +40,15 @@ const request = async <Response>(
   const body = options?.body ? JSON.stringify(options.body) : undefined;
   const headers = {
     "Content-Type": "application/json",
+    Authorization: sessionToken.value ? `Bearer ${sessionToken.value}` : "",
     ...options?.headers,
   };
+
   const baseUrl =
     options?.baseUrl === undefined
       ? envConfig.NEXT_PUBLIC_API_ENDPOINT
       : options.baseUrl;
+
   const fullUrl = url.startsWith("/")
     ? `${baseUrl}${url}`
     : `${baseUrl}/${url}`;
@@ -64,34 +70,39 @@ const request = async <Response>(
     throw new HttpError(data);
   }
 
+  if (SessionTokenPathName.includes(url)) {
+    sessionToken.value = (payload as LoginResponseType).data.token;
+  }
+
+
   return data;
 };
 
 const http = {
   get<Response>(
     url: string,
-    options?: Omit<CustomOptions, "body"> | undefined
+    options?: Omit<CustomOptions, "body">
   ) {
     return request<Response>("GET", url, options);
   },
   post<Response>(
     url: string,
     body: any,
-    options?: Omit<CustomOptions, "body"> | undefined
+    options?: Omit<CustomOptions, "body">
   ) {
     return request<Response>("POST", url, { ...options, body });
   },
   delete<Response>(
     url: string,
     body: any,
-    options?: Omit<CustomOptions, "body"> | undefined
+    options?: Omit<CustomOptions, "body">
   ) {
     return request<Response>("DELETE", url, { ...options, body });
   },
   put<Response>(
     url: string,
     body: any,
-    options?: Omit<CustomOptions, "body"> | undefined
+    options?: Omit<CustomOptions, "body">
   ) {
     return request<Response>("PUT", url, { ...options, body });
   },

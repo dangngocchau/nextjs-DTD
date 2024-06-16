@@ -19,11 +19,11 @@ import { useToast } from "@/components/ui/use-toast";
 import { useAppContext } from "@/app/AppProvider";
 import authApiRequests from "@/apiRequests/auth";
 import { useRouter } from "next/navigation";
+import { sessionToken } from "@/lib/https";
 
 const LoginForm = () => {
   const { toast } = useToast();
   const router = useRouter();
-  const { setSessionToken } = useAppContext();
 
   const form = useForm<LoginBodyType>({
     resolver: zodResolver(LoginBody),
@@ -37,12 +37,12 @@ const LoginForm = () => {
   async function onSubmit(values: LoginBodyType) {
     try {
       const result = await authApiRequests.login(values);
+      
       toast({
         description: result.payload.message,
       });
 
       await authApiRequests.auth({sessionToken: result.payload.data.token});
-      setSessionToken(result.payload.data.token);
 
       router.push("/me"); // Redirect to the profile page
     } catch (error: any) {

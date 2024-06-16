@@ -19,10 +19,10 @@ import authApiRequests from '@/apiRequests/auth';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/components/ui/use-toast';
 import { useAppContext } from '@/app/AppProvider';
+import { sessionToken } from '@/lib/https';
 
 const RegisterForm = () => {
   const router = useRouter();
-  const { setSessionToken } = useAppContext();
 
   const form = useForm<RegisterBodyType>({
     resolver: zodResolver(RegisterBody),
@@ -43,7 +43,7 @@ const RegisterForm = () => {
       });
 
       await authApiRequests.auth({sessionToken: result.payload.data.token});
-      setSessionToken(result.payload.data.token);
+      sessionToken.value = result.payload.data.token;
 
       router.push("/me"); // Redirect to the profile page
     } catch (error: any) {
