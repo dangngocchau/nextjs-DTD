@@ -58,7 +58,9 @@ export default function AppProvider({
   initialSessionToken?: string;
 }) {
   useState(() => {
-    sessionToken.value = initialSessionToken;
+    if (typeof window !== "undefined") {
+      sessionToken.value = initialSessionToken;
+    }
   });
 
   return <>{children}</>;

@@ -8,7 +8,7 @@ export default function ProfileMe() {
   console.log(sessionToken.value);
   useEffect(() => {
     const fetchRequest = async () => {
-      const result = await accountApiRequest.me(sessionToken.value);
+      const result = await accountApiRequest.meClient();
     };
 
     fetchRequest();

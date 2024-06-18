@@ -43,7 +43,6 @@ const LoginForm = () => {
       });
 
       await authApiRequests.auth({sessionToken: result.payload.data.token});
-
       router.push("/me"); // Redirect to the profile page
     } catch (error: any) {
       const errors = error.payload.errors as {
