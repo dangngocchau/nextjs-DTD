@@ -5,7 +5,7 @@ type CustomOptions = RequestInit & {
   baseUrl?: string | undefined;
 };
 
-const SessionTokenPathName = ['/auth/login', '/auth/register'];
+const SessionTokenPathName = ["/auth/login", "/auth/register"];
 
 class HttpError extends Error {
   status: number;
@@ -18,13 +18,13 @@ class HttpError extends Error {
 }
 
 class SessionToken {
-  private token = ''
+  private token = "";
   get value() {
     return this.token;
   }
   set value(token: string) {
-    if (typeof window === 'undefined') {
-      throw new Error('Cannot set token on server side');
+    if (typeof window === "undefined") {
+      throw new Error("Cannot set token on server side");
     }
     this.token = token;
   }
@@ -72,17 +72,15 @@ const request = async <Response>(
 
   if (SessionTokenPathName.includes(url)) {
     sessionToken.value = (payload as LoginResponseType).data.token;
+  } else if ("/auth/logout".includes(url)) {
+    sessionToken.value = "";
   }
-
 
   return data;
 };
 
 const http = {
-  get<Response>(
-    url: string,
-    options?: Omit<CustomOptions, "body">
-  ) {
+  get<Response>(url: string, options?: Omit<CustomOptions, "body">) {
     return request<Response>("GET", url, options);
   },
   post<Response>(
@@ -99,11 +97,7 @@ const http = {
   ) {
     return request<Response>("DELETE", url, { ...options, body });
   },
-  put<Response>(
-    url: string,
-    body: any,
-    options?: Omit<CustomOptions, "body">
-  ) {
+  put<Response>(url: string, body: any, options?: Omit<CustomOptions, "body">) {
     return request<Response>("PUT", url, { ...options, body });
   },
 };
