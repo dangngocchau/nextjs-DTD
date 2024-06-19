@@ -5,13 +5,42 @@ type CustomOptions = RequestInit & {
   baseUrl?: string | undefined;
 };
 
+type EntityErrorPayload = {
+  message: string;
+  errors: { field: string; message: string }[];
+};
+
+const ENTITY_ERROR_STATUS = 422;
+
 const SessionTokenPathName = ["/auth/login", "/auth/register"];
 
 class HttpError extends Error {
   status: number;
-  payload: any;
+  payload: {
+    message: string;
+    [key: string]: any;
+  };
   constructor({ payload, status }: { status: number; payload: any }) {
     super("Http Error");
+    this.status = status;
+    this.payload = payload;
+  }
+}
+
+export class EntityError extends HttpError {
+  status: 422;
+  payload: EntityErrorPayload;
+  constructor({
+    status,
+    payload,
+  }: {
+    status: 422;
+    payload: EntityErrorPayload;
+  }) {
+    super({ status, payload });
+    if (status !== ENTITY_ERROR_STATUS) {
+      throw new Error("EntityError must have status 422");
+    }
     this.status = status;
     this.payload = payload;
   }
@@ -67,7 +96,16 @@ const request = async <Response>(
   };
 
   if (!res.ok) {
-    throw new HttpError(data);
+    if (res.status === ENTITY_ERROR_STATUS) {
+      throw new EntityError(
+        data as {
+          status: 422;
+          payload: EntityErrorPayload;
+        }
+      );
+    } else {
+      throw new HttpError(data);
+    }
   }
 
   if (SessionTokenPathName.includes(url)) {

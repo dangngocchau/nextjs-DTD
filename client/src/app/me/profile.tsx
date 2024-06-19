@@ -15,5 +15,5 @@ export default function ProfileMe() {
   }, []);
 
 
-  return <div>Profile</div>;
+  return <div>Render Client Profile</div>;
 }
