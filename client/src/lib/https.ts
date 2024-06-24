@@ -1,5 +1,6 @@
 import { LoginResponseType } from "@/app/(auth)/login/validation";
 import envConfig from "../../config";
+import { normalizePath } from "./utils";
 
 type CustomOptions = RequestInit & {
   baseUrl?: string | undefined;
@@ -11,10 +12,11 @@ type EntityErrorPayload = {
 };
 
 const ENTITY_ERROR_STATUS = 422;
+const AUTHENTICATION_ERROR_STATUS = 401;
 
-const SessionTokenPathName = ["/auth/login", "/auth/register"];
+const SessionTokenPathName = ["auth/login", "auth/register"];
 
-class HttpError extends Error {
+export class HttpError extends Error {
   status: number;
   payload: {
     message: string;
@@ -26,6 +28,7 @@ class HttpError extends Error {
     this.payload = payload;
   }
 }
+
 
 export class EntityError extends HttpError {
   status: 422;
@@ -103,15 +106,30 @@ const request = async <Response>(
           payload: EntityErrorPayload;
         }
       );
+    } else if (res.status === AUTHENTICATION_ERROR_STATUS) {
+      if (typeof window !== "undefined") {
+        await fetch("/api/auth/logout", {
+          method: "POST",
+          body: JSON.stringify({
+            force: true,
+          }),
+          headers: {
+            ...headers,
+          },
+        });
+        sessionToken.value = "";
+        // location.href = "/login";
+      }
     } else {
       throw new HttpError(data);
     }
   }
-
-  if (SessionTokenPathName.includes(url)) {
-    sessionToken.value = (payload as LoginResponseType).data.token;
-  } else if ("/auth/logout".includes(url)) {
-    sessionToken.value = "";
+  if (typeof window !== "undefined") {
+    if (SessionTokenPathName.some(item => item === normalizePath(url))) {
+      sessionToken.value = (payload as LoginResponseType).data.token;
+    } else if ("auth/logout" === normalizePath(url)) {
+      sessionToken.value = "";
+    }
   }
 
   return data;

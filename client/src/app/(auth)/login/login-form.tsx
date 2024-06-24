@@ -20,10 +20,13 @@ import { useAppContext } from "@/app/AppProvider";
 import authApiRequests from "@/apiRequests/auth";
 import { useRouter } from "next/navigation";
 import { sessionToken } from "@/lib/https";
+import { handleErrorApi } from "@/lib/utils";
+import { useState } from "react";
 
 const LoginForm = () => {
   const { toast } = useToast();
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
 
   const form = useForm<LoginBodyType>({
     resolver: zodResolver(LoginBody),
@@ -35,36 +38,21 @@ const LoginForm = () => {
 
   // 2. Define a submit handler.
   async function onSubmit(values: LoginBodyType) {
+    if (loading) return
+    setLoading(true);
     try {
       const result = await authApiRequests.login(values);
-      
+
       toast({
         description: result.payload.message,
       });
 
-      await authApiRequests.auth({sessionToken: result.payload.data.token});
+      await authApiRequests.auth({ sessionToken: result.payload.data.token });
       router.push("/me"); // Redirect to the profile page
     } catch (error: any) {
-      const errors = error.payload.errors as {
-        field: string;
-        message: string;
-      }[];
-      const status = error.status as number;
-
-      if (status === 422) {
-        errors.forEach((error) => {
-          form.setError(error.field as "email" | "password", {
-            type: "server",
-            message: error.message,
-          });
-        });
-      } else {
-        toast({
-          title: "Unexpected error occur !",
-          description: error.payload.message,
-          variant: "destructive",
-        });
-      }
+      handleErrorApi({ error, setError: form.setError });
+    } finally {
+      setLoading(false);
     }
   }
 

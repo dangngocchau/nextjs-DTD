@@ -31,6 +31,14 @@ export const RegisterRes = z.object({
   message: z.string(),
 });
 
+export const MessageRes = z
+  .object({
+    message: z.string()
+  })
+  .strict()
+
+export type MessageResType = z.TypeOf<typeof MessageRes>
+
 export type RegisterResponseType = z.TypeOf<typeof RegisterRes>
 
 export type RegisterBodyType = z.infer<typeof RegisterBody>;
