@@ -1,6 +1,7 @@
 import { LoginResponseType } from "@/app/(auth)/login/validation";
 import envConfig from "../../config";
 import { normalizePath } from "./utils";
+import { redirect } from "next/navigation";
 
 type CustomOptions = RequestInit & {
   baseUrl?: string | undefined;
@@ -28,7 +29,6 @@ export class HttpError extends Error {
     this.payload = payload;
   }
 }
-
 
 export class EntityError extends HttpError {
   status: 422;
@@ -63,6 +63,8 @@ class SessionToken {
 }
 
 export const sessionToken = new SessionToken();
+
+let clientLogoutRequest: null | Promise<any> = null;
 
 const request = async <Response>(
   method: "GET" | "POST" | "DELETE" | "PUT",
@@ -108,24 +110,30 @@ const request = async <Response>(
       );
     } else if (res.status === AUTHENTICATION_ERROR_STATUS) {
       if (typeof window !== "undefined") {
-        await fetch("/api/auth/logout", {
-          method: "POST",
-          body: JSON.stringify({
-            force: true,
-          }),
-          headers: {
-            ...headers,
-          },
-        });
+        if (!clientLogoutRequest) {
+          clientLogoutRequest = fetch("/api/auth/logout", {
+            method: "POST",
+            body: JSON.stringify({
+              force: true,
+            }),
+            headers: {
+              ...headers,
+            },
+          });
+        }
+        await clientLogoutRequest;
         sessionToken.value = "";
-        // location.href = "/login";
+        location.href = "/login";
+      } else {
+        const sessionToken = (options?.headers as any)?.Authorization.split("Bearer ")[1];
+        redirect(`/api/auth/logout?force=true&sessionToken=${sessionToken}`);
       }
     } else {
       throw new HttpError(data);
     }
   }
   if (typeof window !== "undefined") {
-    if (SessionTokenPathName.some(item => item === normalizePath(url))) {
+    if (SessionTokenPathName.some((item) => item === normalizePath(url))) {
       sessionToken.value = (payload as LoginResponseType).data.token;
     } else if ("auth/logout" === normalizePath(url)) {
       sessionToken.value = "";
