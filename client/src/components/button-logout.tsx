@@ -2,11 +2,12 @@
 import React from "react";
 import { Button } from "./ui/button";
 import authApiRequests from "@/apiRequests/auth";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { handleErrorApi } from "@/lib/utils";
 
 export default function ButtonLogout() {
   const router = useRouter();
+  const pathName = usePathname();
   const handleLogout = async () => {
     try {
       await authApiRequests.logoutFromNextClientToNextServer();
@@ -14,6 +15,9 @@ export default function ButtonLogout() {
     } catch (error) {
       handleErrorApi({
         error,
+      });
+      authApiRequests.logoutFromNextClientToNextServer(true).then((res) => {
+        router.push(`/login?redirect=${pathName}`);
       });
     }
   };

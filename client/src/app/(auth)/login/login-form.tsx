@@ -38,16 +38,18 @@ const LoginForm = () => {
 
   // 2. Define a submit handler.
   async function onSubmit(values: LoginBodyType) {
-    if (loading) return
+    if (loading) return;
     setLoading(true);
     try {
       const result = await authApiRequests.login(values);
+      await authApiRequests.auth({
+        sessionToken: result.payload.data.token,
+        expiresAt: result.payload.data.expiresAt,
+      });
 
       toast({
         description: result.payload.message,
       });
-
-      await authApiRequests.auth({ sessionToken: result.payload.data.token });
       router.push("/me"); // Redirect to the profile page
     } catch (error: any) {
       handleErrorApi({ error, setError: form.setError });

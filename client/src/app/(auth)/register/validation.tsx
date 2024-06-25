@@ -42,3 +42,10 @@ export type MessageResType = z.TypeOf<typeof MessageRes>
 export type RegisterResponseType = z.TypeOf<typeof RegisterRes>
 
 export type RegisterBodyType = z.infer<typeof RegisterBody>;
+
+export const SlideSessionBody = z.object({}).strict()
+
+export type SlideSessionBodyType = z.TypeOf<typeof SlideSessionBody>
+export const SlideSessionRes = RegisterRes
+
+export type SlideSessionResType = z.TypeOf<typeof SlideSessionRes>
